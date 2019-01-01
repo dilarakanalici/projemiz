@@ -1,44 +1,130 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<CodeBlocks_project_file>
-	<FileVersion major="1" minor="6" />
-	<Project>
-		<Option title="algoritmaproje" />
-		<Option pch_mode="2" />
-		<Option compiler="gcc" />
-		<Build>
-			<Target title="Debug">
-				<Option output="bin/Debug/algoritmaproje" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Debug/" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-g" />
-				</Compiler>
-			</Target>
-			<Target title="Release">
-				<Option output="bin/Release/algoritmaproje" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Release/" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-O2" />
-				</Compiler>
-				<Linker>
-					<Add option="-s" />
-				</Linker>
-			</Target>
-		</Build>
-		<Compiler>
-			<Add option="-Wall" />
-		</Compiler>
-		<Unit filename="main.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Extensions>
-			<code_completion />
-			<envvars />
-			<debugger />
-			<lib_finder disable_auto="1" />
-		</Extensions>
-	</Project>
-</CodeBlocks_project_file>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+
+
+/* boyut*/
+#define BOARD_WIDTH 8
+#define BOARD_HEIGHT	8
+
+
+/* Concatation*/
+char* concat(const char *s1, const char *s2) //birlestirmek icin
+{
+    char *result = malloc(strlen(s1) + strlen(s2) + 1); // +1 sonlandirici karakteer icin
+
+    strcpy(result, s1);
+    strcat(result, s2);
+    return result;
+}
+
+void print (int board[BOARD_WIDTH][BOARD_HEIGHT]) {
+	int	i, j;
+
+	/* her sira icin */
+  for (i=0; i<BOARD_WIDTH; i++) {
+	  for (j=0; j<BOARD_HEIGHT; j++) {
+      char * end = "|";
+      char * out = board[i][j] == 1 ? "|X" : "| ";
+      if(j == BOARD_WIDTH-1){
+        out = concat(out, end);
+      }
+			printf ("%s", out);
+		}
+		printf ("\n");
+	}
+}
+
+int xadd (int i, int a) {
+	i += a;
+	while (i < 0) i += BOARD_WIDTH;
+	while (i >= BOARD_WIDTH) i -= BOARD_WIDTH;
+	return i;
+}
+
+
+
+int yadd (int i, int a) {
+	i += a;
+	while (i < 0) i += BOARD_HEIGHT;
+	while (i >= BOARD_HEIGHT) i -= BOARD_HEIGHT;
+	return i;
+}
+
+/* i ve j hucrelerinin komsularina geri donmek icin */
+
+int adjacent_to (int board[][BOARD_HEIGHT], int i, int j) {
+	int	k, l, count;
+
+	count = 0;
+
+	/* go around the cell */
+
+	for (k=-1; k<=1; k++) for (l=-1; l<=1; l++)
+
+		/* only count if at least one of k,l isn't zero */
+
+		if (k || l)
+			if (board[xadd(i,k)][yadd(j,l)]) count++;
+	return count;
+}
+
+void play (int board[][BOARD_HEIGHT]) {
+
+	int	i, j, a, newboard[BOARD_WIDTH][BOARD_HEIGHT];
+
+	/* kurallari uygulama */
+
+	for (i=0; i<BOARD_WIDTH; i++){
+    for (j=0; j<BOARD_HEIGHT; j++) {
+      a = adjacent_to (board, i, j);
+      if (a == 2 || a == 3) newboard[i][j] = board[i][j];
+      if (a < 2 || a > 3) newboard[i][j] = 0;
+	  }
+  }
+
+	/* yeni matrisi eski matirse kopyalama */
+
+	for (i=0; i<BOARD_WIDTH; i++) for (j=0; j<BOARD_HEIGHT; j++) {
+		board[i][j] = newboard[i][j];
+	}
+}
+
+bool check_board(int board[BOARD_WIDTH][BOARD_HEIGHT]){
+  int i,j;
+  for (i=0; i<BOARD_WIDTH; i++) {
+    for (j=0; j<BOARD_HEIGHT; j++) {
+      if(board[i][j] == 1){
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
+/* main*/
+int main (int argc, char *argv[]) {
+  printf ("Initialize board\n");
+  int board[BOARD_WIDTH][BOARD_HEIGHT]={
+        1,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,1,0,
+        0,0,1,1,1,1,1,0,
+        0,1,0,1,0,1,1,1,
+        0,1,0,1,0,1,1,0,
+        0,1,0,1,0,0,0,1,
+        0,1,1,1,1,1,0,1,
+        0,1,0,1,1,0,0,0};
+	print (board);
+  int j;
+  int k = 1;
+  while(check_board(board)){
+    play (board);
+    printf ("Round:");
+    printf ("%d", k);
+    printf ("\n");
+    print (board);
+    k++;
+  }
+}
